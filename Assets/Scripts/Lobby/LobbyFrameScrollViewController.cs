@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 
 public class LobbyFrameScrollViewController : MonoBehaviour, IEndDragHandler
 {
-    private bool _isInitialized = false;
+    private bool _isSuccessfullInitialized = false;
 
     [SerializeField] private ScrollRect scrollRect;
     [SerializeField] private Scrollbar horizontalScrollBar;
@@ -26,20 +26,22 @@ public class LobbyFrameScrollViewController : MonoBehaviour, IEndDragHandler
 
     public void Initialize()
     {
-        InitializeVariables();
+        _isSuccessfullInitialized = InitializeVariables();
+
+        if (!_isSuccessfullInitialized) return;
 
         _moveCoHandle = this.StopAndStartCo(
             _moveCoHandle, ScrollBarMoveCo());
-
-        _isInitialized = true;
     }
 
-    private void InitializeVariables()
+    private bool InitializeVariables()
     {
         if (scrollRect.content.childCount < 2)
         {
-            Debug.LogError("로비 UI의 프레임 개수가 2개 미만이면 제대로 동작할 수 없습니다"); return;
+            Debug.LogError("로비 UI의 프레임 개수가 2개 미만이면 제대로 동작할 수 없습니다");
+            return false;
         }
+
         _orderCount = scrollRect.content.childCount - 1;
         _orderValue = 1f / _orderCount;
 
@@ -56,6 +58,8 @@ public class LobbyFrameScrollViewController : MonoBehaviour, IEndDragHandler
                 (i * 2 + 1)
                 * _orderValue * 0.5f);
         }
+
+        return true;
     }
 
     private IEnumerator ScrollBarMoveCo()
@@ -63,7 +67,7 @@ public class LobbyFrameScrollViewController : MonoBehaviour, IEndDragHandler
         var isTrue = true;
         while (isTrue)
         {
-            if (!_isInitialized || !_applyScrollMove)
+            if (!_isSuccessfullInitialized || !_applyScrollMove)
             {
                 yield return null;
                 continue;
@@ -90,7 +94,7 @@ public class LobbyFrameScrollViewController : MonoBehaviour, IEndDragHandler
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (!_isInitialized) return;
+        if (!_isSuccessfullInitialized) return;
 
         if (IsValueFirstUIFrame())
         {
